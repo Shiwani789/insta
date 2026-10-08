@@ -13,6 +13,7 @@ app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(morgan('dev'));
 
 // Basic health check route
