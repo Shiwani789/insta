@@ -67,7 +67,7 @@ app.use((req, res, next) => {
 // Global error handler
 app.use((err, req, res, next) => {
     console.error(err);
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
         success: false,
         message: err.message || 'Internal Server Error',
         error: err,

@@ -9,8 +9,8 @@ const router = (0, express_1.Router)();
 router.use(auth_1.authMiddleware);
 const createStorySchema = zod_1.z.object({
     body: zod_1.z.object({
-        mediaUrl: zod_1.z.string().url(),
-        mediaType: zod_1.z.string(),
+        mediaUrl: zod_1.z.string().min(1),
+        mediaType: zod_1.z.string().default('image/jpeg'),
         caption: zod_1.z.string().optional()
     })
 });

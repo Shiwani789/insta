@@ -7,10 +7,19 @@ const jwt_1 = require("../../common/utils/jwt");
 const CustomError_1 = require("../../common/errors/CustomError");
 class AuthService {
     async register(data) {
-        const { username, email, password } = data;
+        const { username, password } = data;
+        const emailOrPhone = String(data.email).trim();
+        const isEmail = emailOrPhone.includes('@');
+        const email = isEmail ? emailOrPhone : null;
+        const phone = isEmail ? null : emailOrPhone;
+        const nameParts = String(data.fullName ?? '').trim().split(/\s+/).filter(Boolean);
         const existingUser = await database_1.prisma.user.findFirst({
             where: {
-                OR: [{ username }, { email }]
+                OR: [
+                    { username },
+                    ...(email ? [{ email }] : []),
+                    ...(phone ? [{ phone }] : []),
+                ]
             }
         });
         if (existingUser) {
@@ -20,22 +29,30 @@ class AuthService {
             if (existingUser.email === email) {
                 throw new CustomError_1.CustomError('Email already registered', 400);
             }
+            if (phone && existingUser.phone === phone) {
+                throw new CustomError_1.CustomError('Phone number already registered', 400);
+            }
         }
         const hashedPassword = await (0, password_1.hashPassword)(password);
         const user = await database_1.prisma.user.create({
             data: {
                 username,
                 email,
+                phone,
+                firstName: nameParts[0] ?? null,
+                lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : null,
                 passwordHash: hashedPassword,
             },
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                createdAt: true,
-            }
+            // Return the same shape as login because the Flutter client stores the
+            // access token and maps `data.user` after a successful registration.
         });
-        return user;
+        const tokenPayload = { id: user.id, username: user.username };
+        const { passwordHash, ...userWithoutPassword } = user;
+        return {
+            accessToken: (0, jwt_1.generateAccessToken)(tokenPayload),
+            refreshToken: (0, jwt_1.generateRefreshToken)(tokenPayload),
+            user: userWithoutPassword,
+        };
     }
     async login(data) {
         const { usernameOrEmail, password } = data;
@@ -43,7 +60,8 @@ class AuthService {
             where: {
                 OR: [
                     { username: usernameOrEmail },
-                    { email: usernameOrEmail }
+                    { email: usernameOrEmail },
+                    { phone: usernameOrEmail },
                 ]
             }
         });

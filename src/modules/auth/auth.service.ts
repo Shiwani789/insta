@@ -5,11 +5,20 @@ import { CustomError } from '../../common/errors/CustomError';
 
 export class AuthService {
   async register(data: any) {
-    const { username, email, password } = data;
+    const { username, password } = data;
+    const emailOrPhone = String(data.email).trim();
+    const isEmail = emailOrPhone.includes('@');
+    const email = isEmail ? emailOrPhone : null;
+    const phone = isEmail ? null : emailOrPhone;
+    const nameParts = String(data.fullName ?? '').trim().split(/\s+/).filter(Boolean);
 
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [{ username }, { email }]
+        OR: [
+          { username },
+          ...(email ? [{ email }] : []),
+          ...(phone ? [{ phone }] : []),
+        ]
       }
     });
 
@@ -20,6 +29,9 @@ export class AuthService {
       if (existingUser.email === email) {
         throw new CustomError('Email already registered', 400);
       }
+      if (phone && existingUser.phone === phone) {
+        throw new CustomError('Phone number already registered', 400);
+      }
     }
 
     const hashedPassword = await hashPassword(password);
@@ -28,17 +40,22 @@ export class AuthService {
       data: {
         username,
         email,
+        phone,
+        firstName: nameParts[0] ?? null,
+        lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : null,
         passwordHash: hashedPassword,
       },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        createdAt: true,
-      }
+      // Return the same shape as login because the Flutter client stores the
+      // access token and maps `data.user` after a successful registration.
     });
 
-    return user;
+    const tokenPayload = { id: user.id, username: user.username };
+    const { passwordHash, ...userWithoutPassword } = user;
+    return {
+      accessToken: generateAccessToken(tokenPayload),
+      refreshToken: generateRefreshToken(tokenPayload),
+      user: userWithoutPassword,
+    };
   }
 
   async login(data: any) {
@@ -48,7 +65,8 @@ export class AuthService {
       where: {
         OR: [
           { username: usernameOrEmail },
-          { email: usernameOrEmail }
+          { email: usernameOrEmail },
+          { phone: usernameOrEmail },
         ]
       }
     });

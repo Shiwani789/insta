@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { storyService } from './story.service';
+import { mobileStory } from '../../common/utils/mobile-response';
 
 export class StoryController {
   async createStory(req: Request, res: Response, next: NextFunction) {
     try {
       const story = await storyService.createStory(req.user!.id, req.body);
-      res.status(201).json({ success: true, data: story });
+      res.status(201).json({ success: true, data: mobileStory(story, `${req.protocol}://${req.get('host')}`) });
     } catch (error) {
       next(error);
     }
@@ -14,7 +15,8 @@ export class StoryController {
   async getStories(req: Request, res: Response, next: NextFunction) {
     try {
       const stories = await storyService.getStories(req.user!.id);
-      res.status(200).json({ success: true, data: stories });
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      res.status(200).json({ success: true, data: stories.map((story) => mobileStory(story, baseUrl)) });
     } catch (error) {
       next(error);
     }

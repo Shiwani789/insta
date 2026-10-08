@@ -41,17 +41,14 @@ export class StoryService {
       }
     });
 
-    // Group stories by user
-    const grouped = stories.reduce((acc: any, story: any) => {
-      const { user, ...storyData } = story;
-      if (!acc[user.id]) {
-        acc[user.id] = { user, stories: [] };
-      }
-      acc[user.id].stories.push(storyData);
-      return acc;
-    }, {});
-
-    return Object.values(grouped);
+    // The Flutter client consumes a flat list of story objects.
+    return stories.map((story: any) => ({
+      ...story,
+      username: story.user.username,
+      userAvatar: story.user.profilePhoto,
+      isViewed: false,
+      user: undefined,
+    }));
   }
 
   async viewStory(userId: string, storyId: string) {

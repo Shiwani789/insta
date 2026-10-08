@@ -5,7 +5,9 @@ const zod_1 = require("zod");
 exports.registerSchema = zod_1.z.object({
     body: zod_1.z.object({
         username: zod_1.z.string().min(3).max(30).regex(/^[a-zA-Z0-9_.]+$/, "Username can only contain letters, numbers, underscores and dots"),
-        email: zod_1.z.string().email(),
+        // The Flutter signup form sends its email-or-phone field as `email`.
+        email: zod_1.z.string().trim().min(1).refine((value) => zod_1.z.email().safeParse(value).success || /^\+?[0-9]{8,15}$/.test(value), 'Enter a valid email address or phone number'),
+        fullName: zod_1.z.string().trim().min(1).optional(),
         password: zod_1.z.string().min(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"),
     })
 });

@@ -2,11 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.storyController = exports.StoryController = void 0;
 const story_service_1 = require("./story.service");
+const mobile_response_1 = require("../../common/utils/mobile-response");
 class StoryController {
     async createStory(req, res, next) {
         try {
             const story = await story_service_1.storyService.createStory(req.user.id, req.body);
-            res.status(201).json({ success: true, data: story });
+            res.status(201).json({ success: true, data: (0, mobile_response_1.mobileStory)(story, `${req.protocol}://${req.get('host')}`) });
         }
         catch (error) {
             next(error);
@@ -15,7 +16,8 @@ class StoryController {
     async getStories(req, res, next) {
         try {
             const stories = await story_service_1.storyService.getStories(req.user.id);
-            res.status(200).json({ success: true, data: stories });
+            const baseUrl = `${req.protocol}://${req.get('host')}`;
+            res.status(200).json({ success: true, data: stories.map((story) => (0, mobile_response_1.mobileStory)(story, baseUrl)) });
         }
         catch (error) {
             next(error);

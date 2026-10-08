@@ -10,8 +10,8 @@ router.use(authMiddleware);
 
 const createStorySchema = z.object({
   body: z.object({
-    mediaUrl: z.string().url(),
-    mediaType: z.string(),
+    mediaUrl: z.string().min(1),
+    mediaType: z.string().default('image/jpeg'),
     caption: z.string().optional()
   })
 });

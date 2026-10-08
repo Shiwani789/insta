@@ -36,16 +36,14 @@ class StoryService {
                 user: { select: { id: true, username: true, profilePhoto: true } }
             }
         });
-        // Group stories by user
-        const grouped = stories.reduce((acc, story) => {
-            const { user, ...storyData } = story;
-            if (!acc[user.id]) {
-                acc[user.id] = { user, stories: [] };
-            }
-            acc[user.id].stories.push(storyData);
-            return acc;
-        }, {});
-        return Object.values(grouped);
+        // The Flutter client consumes a flat list of story objects.
+        return stories.map((story) => ({
+            ...story,
+            username: story.user.username,
+            userAvatar: story.user.profilePhoto,
+            isViewed: false,
+            user: undefined,
+        }));
     }
     async viewStory(userId, storyId) {
         const story = await database_1.prisma.story.findUnique({ where: { id: storyId } });
