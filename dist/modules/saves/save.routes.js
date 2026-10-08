@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const save_controller_1 = require("./save.controller");
+const auth_1 = require("../../common/middleware/auth");
+const router = (0, express_1.Router)();
+router.use(auth_1.authMiddleware);
+router.post('/posts/:postId/save', save_controller_1.saveController.savePost);
+router.delete('/posts/:postId/save', save_controller_1.saveController.unsavePost);
+router.get('/users/me/saved', save_controller_1.saveController.getSavedPosts);
+exports.default = router;

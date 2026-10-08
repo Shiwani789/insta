@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const settings_controller_1 = require("./settings.controller");
+const auth_1 = require("../../common/middleware/auth");
+const router = (0, express_1.Router)();
+router.use(auth_1.authMiddleware);
+router.get('/privacy', settings_controller_1.settingsController.getPrivacy);
+router.patch('/privacy', settings_controller_1.settingsController.updatePrivacy);
+router.patch('/interactions', settings_controller_1.settingsController.updateInteractionSettings);
+router.get('/blocked', settings_controller_1.settingsController.getBlocked);
+router.post('/blocked/:userId', settings_controller_1.settingsController.blockUser);
+router.delete('/blocked/:userId', settings_controller_1.settingsController.unblockUser);
+router.post('/muted/:userId', settings_controller_1.settingsController.muteUser);
+router.post('/download-data', settings_controller_1.settingsController.requestDataExport);
+router.post('/account/deactivate', settings_controller_1.settingsController.deactivateAccount);
+router.delete('/account', settings_controller_1.settingsController.deleteAccount);
+exports.default = router;
