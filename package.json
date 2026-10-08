@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon",
-    "build": "npx prisma generate && npx prisma db push && tsc",
-    "start": "node dist/server.js",
+    "build": "npx prisma generate && tsc",
+    "start": "npx prisma db push && node dist/server.js",
     "test": "jest",
     "db:push": "prisma db push",
     "db:generate": "prisma generate"
