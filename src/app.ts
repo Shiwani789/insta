@@ -7,10 +7,11 @@ import { env } from './config/env';
 
 const app = express();
 
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN }));
+// Apply CORS headers before serving uploaded files so web clients on another
+// origin can read image/video responses.
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
